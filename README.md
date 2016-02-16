@@ -22,4 +22,6 @@ lifting the dumbbell only halfway (Class C),
 lowering the dumbbell only halfway (Class D),
 throwing the hips to the front (Class E).
 
+The analysis is done at project.Rmd file, the output can be viewed at project.html
+
 
