@@ -1,4 +1,7 @@
 # Predicting_classes_RF-DT
+
+####The analysis is done at project.Rmd file, the output can be viewed at project.html
+
 Predicting the manner in which people did exercises using data from accelerometers on the belt, forearm, arm, 
 and dumbell of 6 participants.
 
@@ -22,6 +25,6 @@ lifting the dumbbell only halfway (Class C),
 lowering the dumbbell only halfway (Class D),
 throwing the hips to the front (Class E).
 
-The analysis is done at project.Rmd file, the output can be viewed at project.html
+
 
 
