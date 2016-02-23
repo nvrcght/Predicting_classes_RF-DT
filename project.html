@@ -56,19 +56,26 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 
 <p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, the goal was to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
-<p>Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D), throwing the hips to the front (Class E).</p>
+<p>Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: Class A: exactly according to the specification,<br /> Class B: throwing the elbows to the front,<br /> Class C: lifting the dumbbell only halfway,<br /> Class D: lowering the dumbbell only halfway,<br /> Class E: throwing the hips to the front.</p>
 <pre class="r"><code>library(rpart)
 library(caret)
 library(randomForest)
 training &lt;- read.csv('pml-training.csv')
 testing &lt;- read.csv('pml-testing.csv')</code></pre>
+<div id="cleaning-up-dataset" class="section level3">
+<h3>Cleaning up dataset</h3>
 <p>Training dataset has the first 7 variables that are only descriptive, and do not affect the performance of the model: X,user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window</p>
 <p>These variables are removed from the list of predictive variables.</p>
 <pre class="r"><code>columns &lt;- colnames(training)[-c(1:7)]
 training &lt;- training[columns]</code></pre>
+<div id="removing-variables-with-0-variance" class="section level4">
+<h4>Removing variables with 0 variance</h4>
 <p>Next step is to calculate the variance across the variables to check if some of the variables have zero variability and also do not impact the model.</p>
 <pre class="r"><code>var &lt;- apply(training, 2, var, na.rm = TRUE )
 toRemove &lt;- var[is.na(var)][-7] # exclude classe variable from uninfluential variables </code></pre>
+</div>
+<div id="dealing-with-missing-values" class="section level4">
+<h4>Dealing with missing values</h4>
 <p>It is also vital to check for missing values. In this dataset there are some missing values that are represented as an empty string, to make it consistent they are replaced by NA. Examination of number of NA values across the variables reveal that there is a number of variables that have 19216 NA values out of 19622 observations. The remaining 2% of observations that have values for these variable cannot be used to predict the model, thus, the variables that have 98% NAs are removed from the model.</p>
 <pre class="r"><code>training[training == ''] &lt;- NA
 naCount &lt;- apply(training,2, is.na)
@@ -79,6 +86,9 @@ training &lt;- training[,!colnames(training) %in% toRem]
 #check for NA values after some of the variables were removed
 sum(is.na(training))</code></pre>
 <pre><code>## [1] 0</code></pre>
+</div>
+<div id="calculating-out-of-sample-error-using-cross-validation" class="section level4">
+<h4>Calculating out of sample error using cross validation</h4>
 <p>The training data set is clean and ready to be used to create a model. For this classification problem two models were chosen: decision trees and random forest. Training data was split into 10 parts and each model was testing using 10-fold cross validation. Then the average accuracy was taken and compared between these models and the best performance model was chosen to apply to the whole training data set to predict test data.</p>
 <pre class="r"><code>set.seed(1223)
 
@@ -107,6 +117,9 @@ meanAccRf &lt;- mean(accuracyRF)</code></pre>
 <p>10-fold cross validation gives average accuracy for decision tree: 0.746.</p>
 <p>10-fold cross validation gives average accuracy for random forest: 0.997.</p>
 <p>The accuracy score clearly indicates that random forest is predicting the class with more than 99% accuracy. This model is used on the whole training set to predict testing examples. Test set is preprocessed the same way as the training set.</p>
+</div>
+<div id="calculating-final-prediction-using-the-model-with-the-least-out-of-sample-error" class="section level4">
+<h4>Calculating final prediction using the model with the least out-of-sample error</h4>
 <pre class="r"><code>testing &lt;- testing[,colnames(testing) ]
 modelFinal &lt;- randomForest(classe ~ ., data=training, method=&quot;class&quot;)
 predictionTest &lt;- predict(modelFinal,testing, type = 'class')
@@ -115,6 +128,8 @@ predictionTest</code></pre>
 <pre><code>##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
 ##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
 ## Levels: A B C D E</code></pre>
+</div>
+</div>
 
 
 </div>

@@ -9,11 +9,12 @@ Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible t
 
 
 Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: 
-exactly according to the specification (Class A), 
-throwing the elbows to the front (Class B), 
-lifting the dumbbell only halfway (Class C), 
-lowering the dumbbell only halfway (Class D),
-throwing the hips to the front (Class E).
+    Class A: exactly according to the specification,  
+    Class B: throwing the elbows to the front,  
+    Class C: lifting the dumbbell only halfway,  
+    Class D: lowering the dumbbell only halfway,  
+    Class E: throwing the hips to the front.  
+
 
 
 ```{r, message= FALSE, warning=FALSE}
@@ -24,6 +25,8 @@ training <- read.csv('pml-training.csv')
 testing <- read.csv('pml-testing.csv')
 ```
 
+###Cleaning up dataset
+
 Training dataset has the first 7 variables that are only descriptive, and do not affect the performance of the model:
 X,user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window
 
@@ -33,11 +36,16 @@ columns <- colnames(training)[-c(1:7)]
 training <- training[columns]
 ```
 
+####Removing variables with 0 variance 
+
 Next step is to calculate the variance across the variables to check if some of the variables have zero variability and also do not impact the model.
 ```{r, message= FALSE,warning=FALSE}
 var <- apply(training, 2, var, na.rm = TRUE )
 toRemove <- var[is.na(var)][-7] # exclude classe variable from uninfluential variables 
 ```
+
+####Dealing with missing values
+
 It is also vital to check for missing values. In this dataset there are some missing values that are represented as an empty string, to make it consistent they are replaced by NA. Examination of number of NA values across the variables reveal that there is a number of variables that have 19216 NA values out of 19622 observations. The remaining 2% of observations that have values for these variable cannot be used to predict the model, thus, the variables that have 98% NAs are removed from the model. 
 
 ```{r}
@@ -50,6 +58,9 @@ training <- training[,!colnames(training) %in% toRem]
 #check for NA values after some of the variables were removed
 sum(is.na(training))
 ```
+
+
+####Calculating out of sample error using cross validation 
 
 The training data set is clean and ready to be used to create a model. For this classification problem two models were chosen: decision trees and random forest. Training data was split into 10 parts and each model was testing using 10-fold cross validation. Then the average accuracy was taken and compared between these models and the best performance model was chosen to apply to the whole training data set to predict test data.
 
@@ -91,6 +102,7 @@ meanAccRf <- round(meanAccRf,3)
 
 The accuracy score clearly indicates that random forest is predicting the class with more than 99% accuracy. This model is used on the whole training set to predict testing examples. Test set is preprocessed the same way as the training set.
 
+####Calculating final prediction using the model with the least out-of-sample error
 ```{r, cache= TRUE}
 testing <- testing[,colnames(testing) ]
 modelFinal <- randomForest(classe ~ ., data=training, method="class")
